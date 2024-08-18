@@ -1,7 +1,7 @@
 # Youtube-data-Harvesting-and-warehousing
 
 #Overview :
-Build a simple dashboard or UI using Streamlit and retrieve YouTube channel data with the help of the YouTube API. Stored the data in an SQL database(warehousing), enabling querying of the data using SQL.Visualize the data within the Streamlit app to uncover insights, trends with the YouTube channel data
+Build a simple dashboard or UI using Streamlit and retrieve YouTube channel data with the help of the YouTube API. Stored the data in an mySQL database(warehousing), enabling querying of the data using mySQL.Visualize the data within the Streamlit app to uncover insights, trends with the YouTube channel data
 
 Video:
 [Uploading streamlit (1).mp4…](https://github.com/user-attachments/assets/42054585-abd4-424e-ba6e-1eadb0e0e35f)
@@ -9,7 +9,7 @@ Video:
 
 
 #Skill Take Away :
-Python scripting,Data Collection,API integration,Data Management using SQL,Streamlit
+Python scripting,Data Collection,API integration,Data Management using mySQL,Streamlit
 
 #About :
 Hello! I'm Vinoothna, a Mechanical Engineering graduate with a deep passion for AI, ML, and robotics. I'm currently embarking on an exciting journey into data science, with my first project titled YouTube Data Harvesting and Warehousing Using SQL. In this project, I delved into the vast expanse of YouTube data to extract meaningful insights. This experience ignited my enthusiasm for data-driven decision-making and significantly enhanced my skills in data extraction techniques and database management.
