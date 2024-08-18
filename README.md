@@ -39,6 +39,7 @@ Display data in the Streamlit app: Finally, you can display the retrieved data i
 Overall, this approach involves building a simple UI with Streamlit, retrieving data from the YouTube API, storing the data SQL as a warehouse, querying the data warehouse with SQL, and displaying the data in the Streamlit app.
 
 #SQL Query Output is displayed as table in Streamlit Application:
+
 1.What are the names of all the videos and their corresponding channels?
 
 
