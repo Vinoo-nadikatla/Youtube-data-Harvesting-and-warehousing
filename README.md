@@ -13,7 +13,8 @@ About :
 Hello! I'm Vinoothna, a Mechanical Engineering graduate with a deep passion for AI, ML, and robotics. I'm currently embarking on an exciting journey into data science, with my first project titled YouTube Data Harvesting and Warehousing Using SQL. In this project, I delved into the vast expanse of YouTube data to extract meaningful insights. This experience ignited my enthusiasm for data-driven decision-making and significantly enhanced my skills in data extraction techniques and database management.
 
 Problem Statement:
-The problem statement is to create a Streamlit application that allows users to access and analyze data from multiple YouTube channels. The application should have the following features:
+The problem statement is to create a Streamlit application that allows users to access and analyze data from multiple YouTube channels.
+The application should have the following features:
   Ability to input a YouTube channel ID and retrieve all the relevant data (Channel name, subscribers, total video count, playlist ID, video ID, likes, dislikes, comments of each video) using Google API.
  Ability to collect data for up to 10 different YouTube channels and store them in the data lake by clicking a button.
  Option to store the data in a MYSQL or PostgreSQL.
@@ -29,21 +30,21 @@ Display data in the Streamlit app: Finally, you can display the retrieved data i
 Overall, this approach involves building a simple UI with Streamlit, retrieving data from the YouTube API, storing the data SQL as a warehouse, querying the data warehouse with SQL, and displaying the data in the Streamlit app.
 
 SQL Query Output is displayed as table in Streamlit Application:
-What are the names of all the videos and their corresponding channels?
-Which channels have the most number of videos, and how many videos do
+1.What are the names of all the videos and their corresponding channels?
+2.Which channels have the most number of videos, and how many videos do
  they have?
-What are the top 10 most viewed videos and their respective channels?
-How many comments were made on each video, and what are their
+3.What are the top 10 most viewed videos and their respective channels?
+4.How many comments were made on each video, and what are their
  corresponding video names?
-Which videos have the highest number of likes, and what are their 
+5.Which videos have the highest number of likes, and what are their 
 corresponding channel names?
-What is the total number of likes and dislikes for each video, and what are 
+6.What is the total number of likes and dislikes for each video, and what are 
 their corresponding video names?
-What is the total number of views for each channel, and what are their 
+7.What is the total number of views for each channel, and what are their 
 corresponding channel names?
-What are the names of all the channels that have published videos in the year
+8.What are the names of all the channels that have published videos in the year
  2022?
-What is the average duration of all videos in each channel, and what are their 
+9.What is the average duration of all videos in each channel, and what are their 
 corresponding channel names?
-Which videos have the highest number of comments, and what are their 
+10.Which videos have the highest number of comments, and what are their 
 corresponding channel names?
