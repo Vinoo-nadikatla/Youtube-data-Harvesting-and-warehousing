@@ -3,7 +3,10 @@
 #Overview :
 Build a simple dashboard or UI using Streamlit and retrieve YouTube channel data with the help of the YouTube API. Stored the data in an SQL database(warehousing), enabling querying of the data using SQL.Visualize the data within the Streamlit app to uncover insights, trends with the YouTube channel data
 
-Video:[Uploading streamlit.webm...]()
+Video:
+Uploading streamlit (1).mp4…
+
+
 
 #Skill Take Away :
 Python scripting,Data Collection,API integration,Data Management using SQL,Streamlit
