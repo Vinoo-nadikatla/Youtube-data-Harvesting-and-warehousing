@@ -13,21 +13,21 @@ from sqlalchemy import create_engine
 #API key connection to interact with youtube API
 api_service_name = "youtube"
 api_version = "v3"
-api_Key="AIzaSyAsQwBq1Yq1g23kByGvhtQB8MPBc8bKSCI"
+api_Key="YOUTUBE API KEY"
 youtube = googleapiclient.discovery.build(
             api_service_name, api_version, developerKey=api_Key
             )
  
 #engine and mycurser created to intreact with MYSQL Database
-engine = create_engine("mysql+mysqlconnector://root:123456789@localhost/youtube_1")
-mydb = mysql.connector.connect(host="localhost",user="root",password="123456789")   
+engine = create_engine("mysql+mysqlconnector://USERNAME:PASSWORD@HOST/DATABASE")
+mydb = mysql.connector.connect(host="HOST",user="USERNAME",password="PASSWORD")   
 mycursor = mydb.cursor(buffered=True)
  
 #to create and use the database in MYSQL database 
 mycursor.execute('create database if not exists youtube_1')
 mycursor.execute('use youtube_1')
 #setting up streamlit page and adding name to it
-icon=Image.open(r"C:\Users\rames\Downloads\Youtube_logo.png")
+icon=Image.open(r"Youtube_logo.png")
 st.set_page_config(page_title='YouTube Data Harvesting and Warehousing',
                     page_icon=icon,
                     layout='wide',
