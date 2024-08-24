@@ -26,8 +26,9 @@ mycursor = mydb.cursor(buffered=True)
 #to create and use the database in MYSQL database 
 mycursor.execute('create database if not exists youtube_1')
 mycursor.execute('use youtube_1')
+
 #setting up streamlit page and adding name to it
-icon=Image.open(r"Youtube_logo.png")
+icon=Image.open(r"C:\Users\rames\Downloads\Youtube_logo.png")
 st.set_page_config(page_title='YouTube Data Harvesting and Warehousing',
                     page_icon=icon,
                     layout='wide',
@@ -121,8 +122,8 @@ if selected == "Home":
 # Function to Retrieve channel information from Youtube
 def channel_information(channel_id):
     request = youtube.channels().list(
-        part="snippet,contentDetails,statistics",
-        id=channel_id)
+    part="snippet,contentDetails,statistics",
+    id=channel_id)
     response = request.execute()
 
     for i in response['items']:
@@ -253,7 +254,7 @@ def comments_information(video_IDS):
             request = youtube.commentThreads().list(
             part="snippet",
             videoId=video_id,
-            maxResults=100)
+            maxResults=200)
             response = request.execute()
 
             for i in response.get('items',[]):
@@ -265,30 +266,37 @@ def comments_information(video_IDS):
                             comment_publishedat=convert_published_at(i['snippet']['topLevelComment']['snippet']['publishedAt']))
                 comments_info.append(data)
                 # Pagination for comments
+            nextPageToken = response.get('nextPageToken')
+            while nextPageToken:
+                request = youtube.commentThreads().list(
+                    part="snippet",
+                    videoId=video_id,
+                    maxResults=100,
+                    pageToken=nextPageToken
+                )
+                response = request.execute()
+                for i in response.get('items', []):
+                    data = dict(
+                        video_id=video_id,
+                        comment_id=i['id'],
+                        comment_text=i['snippet']['topLevelComment']['snippet']['textDisplay'],
+                        comment_author=i['snippet']['topLevelComment']['snippet']['authorDisplayName'],
+                        comment_publishedat=convert_published_at(i['snippet']['topLevelComment']['snippet']['publishedAt'])
+                    )
+                    comments_info.append(data)
                 nextPageToken = response.get('nextPageToken')
-                while nextPageToken:
-                    request = youtube.commentThreads().list(
-                        part="snippet",
-                        videoId=video_id,
-                        maxResults=100,
-                        pageToken=nextPageToken)
-                    response = request.execute()
-                    for i in response.get('items', []):
-                        data = dict(
-                            video_id=video_id,
-                            comment_id=i['id'],
-                            comment_text=i['snippet']['topLevelComment']['snippet']['textDisplay'],
-                            comment_author=i['snippet']['topLevelComment']['snippet']['authorDisplayName'],
-                            comment_publishedat=convert_published_at(i['snippet']['topLevelComment']['snippet']['publishedAt'])
-                        )
-                        comments_info.append(data)
-                    nextPageToken = response.get('nextPageToken')
+
     except HttpError as e:
-        error_message = f"Error retrieving comments: {e}"  # Handle specific YouTube API errors
-        st.error(error_message)
+        error_details = str(e)
+        if 'commentsDisabled' in error_details:
+            st.warning(f"Comments are disabled for video ID: {video_id}. Skipping this video.")
+        elif 'quotaExceeded' in error_details:
+            st.error("API Quota exceeded. Please try again later.")
+            
+        else:
+                st.error(f"An error occurred: {e}")
 
-    return (comments_info)
-
+    return comments_info
 
 #setting up the option "Data collection and upload" in streamlit page
 if selected == "Data collection and upload":
@@ -320,64 +328,33 @@ if selected == "Data collection and upload":
                     st.error(" API Quota exceeded. Please try again later.")
             except:
                 st.error("Please ensure to give valid channel ID")
-
-
+   
 # upload the youtube retrieved data into MYSQL database
     if st.button("Upload to MYSQL database"): 
 
         with st.spinner('Upload in progress...'):
             try:
-                # Function to upload channel information to MySQL Database
-                def upload_channel_data(channel_data):
-                    
-                    query = """
-                        INSERT INTO channel_information (channel_name, Channel_id, channel_Description, channel_Thumbnail, 
-                                                        channel_playlist_id, channel_subscribers, channel_video_count, 
-                                                        channel_views, channel_publishedat)
-                        VALUES (%(channel_name)s, %(Channel_id)s, %(channel_Description)s, %(channel_Thumbnail)s, 
-                                %(channel_playlist_id)s, %(channel_subscribers)s, %(channel_video_count)s, 
-                                %(channel_views)s, %(channel_publishedat)s)
-                    """
-                    with engine.connect() as mydb:
-                        mydb.execute(query, channel_data)
-                        mydb.commit()
+                #to create a channel table in sql database
+                mycursor.execute('''create table if not exists channel( channel_name VARCHAR(100) ,
+                                channel_id VARCHAR(50) PRIMARY KEY,channel_Description VARCHAR(1000),channel_Thumbnail VARCHAR(100),
+                                channel_playlist_id VARCHAR(50),channel_subscribers BIGINT,channel_video_count BIGINT,
+                                channel_views BIGINT,channel_publishedat DATETIME)''')
                 
-                # Function to upload playlist information to MySQL Database
-                def upload_playlist_data(playlist_info):
-                    query = """
-                        INSERT INTO playlist_information (playlist_id, playlist_name, publishedat, channel_ID, 
-                                                        channel_name, videoscount)
-                        VALUES (%(playlist_id)s, %(playlist_name)s, %(publishedat)s, %(channel_ID)s, %(channel_name)s, 
-                                %(videoscount)s)
-                    """
-                    with engine.connect() as mydb:
-                        mydb.execute(query, playlist_info)
-                        mydb.commit()
+                #to create a playlist table in sql database
+                mycursor.execute('''create table if not exists playlist(playlist_id VARCHAR(50) PRIMARY KEY,playlist_name VARCHAR(100),
+                                publishedat DATETIME,channel_id VARCHAR(50),channel_name VARCHAR(100),videoscount BIGINT)''')
                 
-                # Function to upload video information to MySQL Database
-                def upload_video_data(video_info):
-                    query = """
-                        INSERT INTO video_information (channel_id, video_id, video_name, video_Description, 
-                                                        Thumbnail, Tags, publishedAt, Duration, View_Count, 
-                                                        Like_Count, Dislike_Count, Favorite_Count, Comment_Count, Caption_Status)
-                        VALUES (%(channel_id)s, %(video_id)s, %(video_name)s, %(video_Description)s, %(Thumbnail)s, 
-                                %(Tags)s, %(publishedAt)s, %(Duration)s, %(View_Count)s, %(Like_Count)s, %(Dislike_Count)s,
-                                %(Favorite_Count)s, %(Comment_Count)s, %(Caption_Status)s)
-                    """
-                    with engine.connect() as mydb:
-                        mydb.execute(query, video_info)
-                        mydb.commit()  # Ensure that the transaction is committed
-
+                #to create videos table in sql database
+                mycursor.execute('''create table if not exists videos(channel_id VARCHAR(50),video_id VARCHAR(50)primary key,
+                                video_name VARCHAR(100),video_Description VARCHAR(500),Thumbnail VARCHAR(100),Tags VARCHAR(250),
+                                publishedAt DATETIME,Duration VARCHAR(10),View_Count BIGINT,Like_Count BIGINT,Favorite_Count BIGINT,
+                                Comment_Count BIGINT,Caption_Status VARCHAR(10),
+                                FOREIGN KEY (channel_id) REFERENCES channel(channel_id))''')
                 
-                # Function to upload comments information to MySQL Database
-                def upload_comments_data(comments_info):
-                    query = """
-                        INSERT INTO comments_information (video_id, comment_id, comment_text, comment_author, comment_publishedat)
-                        VALUES (%(video_id)s, %(comment_id)s, %(comment_text)s, %(comment_author)s, %(comment_publishedat)s)
-                    """
-                    with engine.connect() as mydb:
-                        mydb.execute(query, comments_info)
-                        mydb.commit()
+                #to create comments table in sql database
+                mycursor.execute('''create table if not exists comments(video_id VARCHAR(50),comment_id VARCHAR(50),comment_text TEXT,
+                                comment_author VARCHAR(50),comment_publishedat DATETIME,FOREIGN KEY (video_id) REFERENCES videos(video_id))''')
+                
                 
                 #Transform corresponding data's into pandas dataframe
                 df_channel=pd.DataFrame(channel_information(channel_id=channel_ID),index=[0])
@@ -490,14 +467,17 @@ def sql_question_2():
 
 # Function to excute Query of 3rd Question 
 def sql_question_3():
-    mycursor.execute('''SELECT channel.Channel_name,videos.Video_name, videos.View_Count as Total_Views
-                        FROM videos
-                        JOIN channel ON channel.Channel_id = videos.Channel_id
-                        ORDER BY videos.View_Count DESC
-                        LIMIT 10;''')
-    out=mycursor.fetchall()
-    Q3= pd.DataFrame(out, columns=['Channel Name','Videos Name','Total Views']).reset_index(drop=True)
-    Q3.index +=1
+    mycursor.execute('''
+        SELECT channel.Channel_name, videos.Video_name, videos.View_Count as Total_Views
+        FROM videos
+        JOIN channel ON channel.Channel_id = videos.Channel_id
+        WHERE videos.View_Count IS NOT NULL  #Ensure only valid view counts are considered
+        ORDER BY videos.View_Count DESC  #Correct ordering by the actual column name
+        LIMIT 10;
+    ''')
+    out = mycursor.fetchall()
+    Q3 = pd.DataFrame(out, columns=['Channel Name', 'Videos Name', 'Total Views']).reset_index(drop=True)
+    Q3.index += 1
     st.dataframe(Q3)
     st.write("### :green[Top 10 most viewed videos :]")
     fig = px.bar(Q3,
@@ -522,22 +502,22 @@ def sql_question_4():
 
 # Function to excute Query of 5th Question 
 def sql_question_5():
-    mycursor.execute('''SELECT channel.channel_name,videos.video_name,videos.like_count as Highest_likes 
-                    FROM videos 
-                    JOIN channel ON videos.channel_id=channel.channel_id
-                    WHERE like_count=(SELECT MAX(videos.like_count) FROM videos v WHERE videos.channel_id=v.channel_id
-                    GROUP BY channel_id)
-                    ORDER BY videos.like_count DESC
-                    LIMIT 10;''')
-    out=mycursor.fetchall()
-    Q5= pd.DataFrame(out, columns=['Channel Name','Videos Name','Likes']).reset_index(drop=True)
-    Q5.index +=1
+    mycursor.execute('''
+        SELECT channel.channel_name, videos.video_name, videos.like_count AS Likes
+        FROM videos
+        JOIN channel ON videos.channel_id = channel.channel_id
+        ORDER BY videos.like_count DESC
+        LIMIT 10;''')
+    out = mycursor.fetchall()
+    Q5 = pd.DataFrame(out, columns=['Channel Name', 'Video Name', 'Likes']).reset_index(drop=True)
+    Q5.index += 1
     st.dataframe(Q5)
-    st.write("### :green[Top 10 most liked videos :]")
+
+    st.write("### :green[The top liked videos :]")
     fig = px.bar(Q5,
-                     x='Likes',
-                     y='Videos Name',
-                     orientation='h',
+                     x='Video Name',
+                     y='Likes',
+                     orientation='v',
                      color='Channel Name'
                     )
     st.plotly_chart(fig,use_container_width=True)
@@ -593,7 +573,8 @@ def sql_question_9():
                     TIME_FORMAT(SEC_TO_TIME(AVG(TIME_TO_SEC(TIME(videos.Duration)))), "%H:%i:%s") AS Duration
                     FROM videos
                     JOIN channel ON videos.channel_id=channel.channel_id
-                    GROUP BY channel_name ''')
+                    GROUP BY channel.channel_name
+                    ORDER BY AVG(TIME_TO_SEC(videos.Duration))   ''')
     out=mycursor.fetchall()
     Q9= pd.DataFrame(out, columns=['Chanel Name','Duration']).reset_index(drop=True)
     Q9.index +=1
@@ -609,19 +590,11 @@ def sql_question_9():
 
 # Function to excute Query of 10th Question 
 def sql_question_10():
-    mycursor.execute('''
-        SELECT 
-            channel.channel_name,
-            videos.video_name, 
-            videos.comment_count AS Total_Comments
-        FROM 
-            videos
-        JOIN 
-            channel ON videos.channel_id = channel.channel_id
-        ORDER BY 
-            videos.comment_count DESC
-        LIMIT 10;
-    ''')
+    mycursor.execute('''SELECT channel.channel_name, videos.video_name, videos.comment_count
+                    FROM videos
+                    JOIN channel ON videos.channel_id = channel.channel_id
+                    ORDER BY videos.comment_count DESC
+                    LIMIT 10; ''')
 
     out = mycursor.fetchall()
     Q10 = pd.DataFrame(out, columns=['Channel Name', 'Video Name', 'Comments']).reset_index(drop=True)
@@ -678,4 +651,6 @@ if selected == 'Analysis using SQL':
         sql_question_9()
     if Selected_Question =='10.Which videos have the highest number of comments, and what are their corresponding channel names?':
         sql_question_10()
+
+
 
